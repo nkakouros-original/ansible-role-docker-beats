@@ -1,0 +1,19 @@
+- name: Prepare
+  hosts: all
+  roles:
+    - geerlingguy.docker
+  tasks:
+    - name: Install packages required by ansible modules
+      package:
+        name: "{{ package }}"
+      loop: "{{ packages }}"
+      loop_control:
+        loop_var: package
+      vars:
+        packages:
+          - curl
+          
+    - name: Create docker network
+      docker_network:
+         name: "elastic"
+         state: present

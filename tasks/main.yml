@@ -1,0 +1,53 @@
+---
+
+- include_tasks: variables.yml
+
+- include_tasks: core/version.yml
+  when: beats_already_installed
+
+- include_tasks: configure.yml
+
+- include_tasks: core/system.yml
+
+- include_tasks: install.yml
+
+- name: Run pending handlers now
+  meta: flush_handlers
+
+- include_tasks: core/version.yml
+
+- include_tasks: core/keystore.yml
+
+- include_tasks: outputs/certificates.yml
+  when: beats_certificates != None
+
+- include_tasks: outputs/kibana.yml
+  when:
+    - beats_config_kibana_endpoint | bool
+    - beats_flavor != 'heartbeat'  # https://github.com/elastic/beats/pull/10294
+  
+- include_tasks: outputs/keystore.yml
+
+- include_tasks: processors.yml
+
+- include_tasks: core/configure.yml
+
+- include_tasks: core/fields.yml
+
+- include_tasks: "flavor-specific/{{ beats_flavor }}.yml"
+  when: (role_path + '/tasks/flavor-specific/' + beats_flavor + '.yml') is file
+
+# This should run after the flavor specific tasks, because these tasks may add
+# monitors, etc that will cause new fields to be exported to the index template.
+- include_tasks: outputs/index.yml
+  when: beats_extract_index_template | bool
+
+- include_tasks: setup.yml
+
+- name: Run pending handlers now
+  meta: flush_handlers
+
+- include_tasks: outro.yml
+
+
+

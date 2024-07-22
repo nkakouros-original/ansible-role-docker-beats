@@ -1,0 +1,35 @@
+---
+
+- name: Linux handlers
+  block:
+    - name: "{{ beats_flavor }}: Restart systemd service"
+      systemd:
+        name: "{{ beats_service_name }}"
+        state: restarted
+        enabled: true
+        daemon_reload: true
+      listen: beats-restart-service
+      
+    - name: "{{ beats_flavor }}: Check that beats service has started successfully"
+      docker_container_info:
+        name: "{{ beats_flavor }}"
+      register: container_info
+      until: container_info.exists and container_info.container.State.Running
+      retries: 60
+      delay: 20
+      listen: beats-restart-service
+      failed_when: not container_info.exists
+
+  when:
+    - beats_enable_service | bool
+    - ansible_os_family != 'Windows'
+    - beats_flavor != 'winlogbeat'
+
+- name: "{{ beats_flavor }}: Start windows service"
+  win_service:
+    name: "{{ beats_flavor }}"
+    state: restarted
+  listen: beats-restart-service
+  when:
+    - beats_enable_service | bool
+    - ansible_os_family == 'Windows'

@@ -1,0 +1,9 @@
+[Unit]
+Description=Beats Server
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStart=/usr/local/bin/beats
+[Install]
+WantedBy=multi-user.target
