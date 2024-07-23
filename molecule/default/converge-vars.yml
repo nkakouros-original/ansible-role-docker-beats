@@ -1,6 +1,7 @@
 ---
 
 beats_flavor: "{{ lookup('env', 'MOLECULE_BEATS_FLAVOR') | default('auditbeat', true) }}"
+beats_unset_facts: true
 
 beats_major_version: 8
 beats_minor_version: "{{ '14' if beats_flavor != 'winlogbeat' else '12' }}"

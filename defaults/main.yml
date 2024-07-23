@@ -10,6 +10,23 @@ beats_flavor: auditbeat
 # setup` on a linux server running elasticsearch to get the winlogbeat template,
 # etc inserted).
 
+beats_unset_facts: true
+# Set this to true to set to None some variables that this role uses. Set it to
+# true if you want to use this role multiple times during an ansible run.  Such
+# variables are set to defaults by the role, not through this defaults.yml file
+# but by using `set_fact` tasks. This is done to provide defaults based on the
+# OS you are using. This single defaults.yml file could have only been used to
+# provide defaults for a single OS. Since these variables are assigned a value
+# with `set_fact`, they will keep their value throughout an ansible run, i.e.
+# they will be exposed to the playbook. If you include this role more than once,
+# e.g. in a loop, in order to install more than one beat (e.g. both auditbeat
+# and packetbeat), the `set_fact` tasks this role uses will be skipped since the
+# variables already have a value. This means that the second beat will be
+# installed with the settings of the first, which is wrong. Setting
+# `beats_unset_facts` to true, will unset such sensitive variables so that the
+# second beat can be configured properly. Of course, this means that you will
+# not be able to access these variables from your playbooks anymore.
+
 
 beats_major_version: 7
 # The version of beats to install, eg 6, 7, etc.
