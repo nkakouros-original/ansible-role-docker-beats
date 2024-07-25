@@ -261,3 +261,34 @@ beats_filebeat_module_files: []
 # don't need to specify it in the `beats_filebeat_modules` variable in the
 # second case since it will already be enabled (but it is a good idea to do so
 # for consistency).
+
+beats_filebeat_modules: []
+# List of filebeat modules to enable.
+
+beats_filebeat_modules_disable: []
+# List of filebeat modules to disable.
+# }}}
+# Heartbeat specifics {{{
+beats_heartbeat_monitors_path: /usr/share/heartbeat/monitors.d
+# A directory where dynamically loaded monitor config files are located.
+
+beats_heartbeat_monitors: []
+# A list of monitor conf files that should be uploaded to
+# `beats_heartbeat_monitor_files`. Example:
+# ```
+# beats_heartbeat_monitors:
+#   - src: local/path/to/file
+# ```
+#
+# You can also specify monitors inline:
+# ```
+# beats_heartbeat_monitors:
+#   - content:
+#       name: monitor-1
+#       type: http
+#       ...
+#     dest: monitor1.yml
+# ```
+#
+# You can also combine the two formats.
+# }}}

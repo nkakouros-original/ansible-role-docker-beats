@@ -46,20 +46,41 @@
       notify: beats-restart-service
 
 
-- name: "{{ beats_flavor }}: Create modules directory"
+- name: "{{ beats_flavor }}: Setup Modules Directory"
   block:
-    - name: "{{ beats_flavor }}: Create modules directory on Linux"
-      file:
-        path: "{{ beats_filebeat_modules_dir }}"
-        mode: 0o644
-        state: directory
-      when: ansible_os_family != 'Windows'
-    - name: "{{ beats_flavor }}: Create modules directory on Windows"
-      win_file:
-        path: "{{ beats_filebeat_modules_dir }}"
-        state: directory
-      when: ansible_os_family == 'Windows'
+    - name: "{{ beats_flavor }}: Copy modules.d directory from Docker container to host"
+      command: >
+        docker cp {{ beats_flavor }}:{{ beats_filebeat_modules_dir }} {{ beats_filebeat_modules_dir }}
 
+    - name: "{{ beats_flavor }}: Replace Filebeat installation script"
+      copy:
+        content: |
+          #!/usr/bin/env bash
+
+          docker pull docker.elastic.co/beats/{{ beats_flavor }}:{{ beats_major_version }}.{{ beats_minor_version }}.{{ beats_patch_version }}
+
+          # Remove any existing container
+          docker rm -f -v {{ beats_flavor }} || :
+
+          # Run the Beat container
+          docker run --network=elastic --user root --rm --name={{ beats_flavor }}  \
+            -v  "/var/lib/docker/containers:/var/lib/docker/containers:ro" \
+            -v  "/var/run/docker.sock:/var/run/docker.sock:ro" \
+            -v  {{ beats_certificates_dir }}:{{ beats_certificates_dir }} \
+            -v  {{ beats_path_config }}/scripts:{{ beats_path_config }}/scripts \
+            -v {{ beats_path_config }}/{{ beats_flavor }}.yml:{{ beats_path_config }}/{{ beats_flavor }}.yml:ro \
+            -v {{ beats_path_config }}/fields.yml:{{ beats_path_config }}/fields.yml \
+            -v {{ beats_filebeat_inputs_dir }}:{{ beats_filebeat_inputs_dir }} \
+            -v {{ beats_filebeat_modules_dir }}:{{ beats_filebeat_modules_dir }} \
+            -v {{ beats_path_data }}:{{ beats_path_data }}:rw \
+            -v {{ beats_path_logs }}:{{ beats_path_logs }} \
+            docker.elastic.co/beats/{{ beats_flavor }}:{{ beats_major_version }}.{{ beats_minor_version }}.{{ beats_patch_version }} filebeat -e --strict.perms=false \
+            $BEAT_LOG_OPTS $BEAT_CONFIG_OPTS $BEAT_PATH_OPTS
+        dest: /usr/local/bin/{{ beats_flavor }}"
+      notify: beats-restart-service
+      
+    - name: Run pending handlers now
+      meta: flush_handlers
 
 - name: "{{ beats_flavor }}: Upload modules"
   block:
@@ -105,7 +126,7 @@
           --path.data /usr/share/{{ beats_flavor }}/data \
           --path.config /usr/share/{{ beats_flavor }} \
           --path.home {{ beats_path_home }} \
-          --path.logs modules enable {{ modules_to_enable }}"
+          --path.logs /usr/share/{{ beats_flavor }}/logs modules enable {{ modules_to_enable }}"
       when: modules_to_enable | length > 0
       vars:
         modules_to_enable: >-
@@ -165,7 +186,7 @@
           --path.data /usr/share/{{ beats_flavor }}/data \
           --path.config /usr/share/{{ beats_flavor }} \
           --path.home {{ beats_path_home }} \
-          --path.logs modules disable {{ modules_to_disable }}"
+          --path.logs /usr/share/{{ beats_flavor }}/logs modules disable {{ modules_to_disable }}"
       when: modules_to_disable | length > 0
       vars:
         modules_to_disable: >-
