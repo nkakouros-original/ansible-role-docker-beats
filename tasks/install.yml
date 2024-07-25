@@ -10,5 +10,5 @@
     group: root
   with_items:
     - Dockerfile
-    - beats
+    - "{{ beats_flavor }}"
   notify: beats-restart-service

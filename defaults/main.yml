@@ -96,7 +96,7 @@ beats_systemd_override: |
   Environment=
   EnvironmentFile=-/etc/{{ beats_flavor }}/{{ beats_installation_name }}.env.vars
   ExecStart=
-  ExecStart=/usr/local/bin/beats
+  ExecStart=/usr/local/bin/{{ beats_flavor }}
 # Use this variable to override variables in the default systemd service file
 # for beats. Set to none (`~`) to disable the override. The default value above
 # loads environment variables from a file that this roles creates. This file
@@ -233,3 +233,31 @@ beats_setup_index_management: false
 beats_setup_pipelines: false
 # Whether to install the ingest node pipelines into elasticsearch that come with
 # the beat and allow elasticsearch to process the logs sent by the beat.
+
+# Filebeat specifics {{{
+beats_filebeat_inputs_dir: "{{ beats_path_config }}/inputs.d"
+# The directory where filebeat input configuration files are located. This
+# settings sets the `beats_config.filebeat.config.inputs.path` option (unless
+# you overwrite the role default) and is also used by the role to know where it
+# should upload the files in `beats_filebeat_input_files`.
+
+beats_filebeat_input_files: []
+# A list of files on the Ansible controller that contain filebeat input
+# definitions and that the role should upload to the remote.
+
+beats_filebeat_modules_dir: "{{ beats_path_config }}/modules.d"
+# The directory where filebeat module configuration files are located. This
+# settings sets the `beats_config.filebeat.config.modules.path` option (unless
+# you overwrite the role default) and is also used by the role to know where it
+# should upload the files in `beats_filebeat_module_files`.
+
+beats_filebeat_module_files: []
+# A list of files on the Ansible controller that contain filebeat module
+# configurations and that the role should upload to the remote. Since filebeat
+# comes with configuration files for all modules it supports, this list can be
+# used to overwrite an existing configuration. The module will be disabled by
+# if the source file has a `.disabled` suffix (e.g.
+# `path/to/my-custom-module.yml.disabled`) and enabled if it ends in `.yml`. You
+# don't need to specify it in the `beats_filebeat_modules` variable in the
+# second case since it will already be enabled (but it is a good idea to do so
+# for consistency).

@@ -69,6 +69,11 @@
   loop_control:
     loop_var: _beats__vars_file
 
+- name: Set beats_config
+  set_fact:
+    beats_config: "{{ _beats_flavor_specific_default_config | combine({'output': {'console': {'pretty': true}}}) }}"
+  when: beats_flavor != 'auditbeat'
+
 - name: "{{ beats_flavor }}: Merge user conf with defaults"
   set_fact:
     beats_combined_config: >-

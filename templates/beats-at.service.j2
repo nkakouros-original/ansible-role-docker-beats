@@ -8,7 +8,7 @@ After=network-online.target
 
 EnvironmentFile=-{{ beats_path_config }}/%i.env.vars
 
-ExecStart=/usr/local/bin/beats
+ExecStart=/usr/local/bin/{{ beats_flavor }}
 
 Restart=always
 

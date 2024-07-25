@@ -90,3 +90,9 @@ beats_auditbeat_rule_files:
       -F path=/root
       -F euid=root
       -k molecule
+
+# Filebeat specifics
+beats_filebeat_input_files:
+  - "{{ role_path }}/molecule/default/fixtures/filebeat.inputs.yml"
+beats_filebeat_module_files:
+  - "{{ role_path }}/molecule/default/fixtures/filebeat.module.yml"
