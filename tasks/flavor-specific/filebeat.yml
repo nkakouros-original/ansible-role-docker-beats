@@ -76,7 +76,7 @@
             -v {{ beats_path_logs }}:{{ beats_path_logs }} \
             docker.elastic.co/beats/{{ beats_flavor }}:{{ beats_major_version }}.{{ beats_minor_version }}.{{ beats_patch_version }} filebeat -e --strict.perms=false \
             $BEAT_LOG_OPTS $BEAT_CONFIG_OPTS $BEAT_PATH_OPTS
-        dest: /usr/local/bin/{{ beats_flavor }}"
+        dest: "/usr/local/bin/{{ beats_flavor }}"
       notify: beats-restart-service
       
     - name: Run pending handlers now

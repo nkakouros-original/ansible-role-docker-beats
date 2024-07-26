@@ -269,7 +269,7 @@ beats_filebeat_modules_disable: []
 # List of filebeat modules to disable.
 # }}}
 # Heartbeat specifics {{{
-beats_heartbeat_monitors_path: /usr/share/heartbeat/monitors.d
+beats_heartbeat_monitors_path: "{{ beats_path_config }}/monitors.d"
 # A directory where dynamically loaded monitor config files are located.
 
 beats_heartbeat_monitors: []
