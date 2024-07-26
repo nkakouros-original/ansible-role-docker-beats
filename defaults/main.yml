@@ -292,3 +292,34 @@ beats_heartbeat_monitors: []
 #
 # You can also combine the two formats.
 # }}}
+# Metricbeat specifics {{{
+beats_metricbeat_modules_dir: "{{ beats_path_config }}/modules.d"
+# The directory where metricbeat module configuration files are located. This
+# settings sets the `beats_config.metricbeat.config.modules.path` option (unless
+# you overwrite the role default) and is also used by the role to know where it
+# should upload the files in `beats_metricbeat_module_files`.
+
+beats_metricbeat_module_files: []
+# A list of files on the Ansible controller that contain metricbeat module
+# configurations and that the role should upload to the remote. Since metricbeat
+# comes with configuration files for all modules it supports, this list can be
+# used to overwrite an existing configuration. The module will be enabled by
+# default unless the source file has a `.disabled` suffix.
+# ```yml
+# beats_metricbeat_module_files:
+#   - src: /path/to/your/file.conf
+# ```
+#
+# Alternatively, you can provide the file contents inline:
+# beats_metricbeat_module_files:
+#   - content:
+#       - module: elasticsearch
+#         ...
+#     dest: my-module.yml.disabled  # or without `.disabled` to have it enabled
+# The contents should a yaml structure.  The `dest` key is the name of the file
+# where the inline rules will be uploaded to. You can mix the two methods of
+# specifying the rules.
+
+beats_metricbeat_modules: []
+# The list of metricbeat modules to enable.
+# }}}
