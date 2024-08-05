@@ -7,7 +7,7 @@ docker build -t auditbeat:{{ beats_major_version }}.{{ beats_minor_version }}.{{
 docker rm -f -v {{ beats_flavor }} || :
 
 # Run the Beat container
-docker run --network elastic --rm --name={{ beats_flavor }} \
+docker run --network host --rm --name={{ beats_flavor }} \
   --pid host --user root --cap-add AUDIT_CONTROL   --cap-add AUDIT_READ   --cap-add SYS_ADMIN   --cap-add SYS_PTRACE   --privileged \
   -v  {{ beats_certificates_dir }}:{{ beats_certificates_dir }} \
   -v  {{ beats_path_config }}/scripts:{{ beats_path_config }}/scripts \
