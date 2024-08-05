@@ -3,6 +3,6 @@
 - name: Converge
   hosts: all
   roles:
-    - abhi8080.docker-beats
+    - abhi8080.docker_beats
   vars_files:
     - converge-vars.yml
