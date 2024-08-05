@@ -1,8 +1,14 @@
+---
+
 - name: Prepare
   hosts: all
   roles:
     - geerlingguy.docker
-  tasks:
+    - nkakouros.easyrsa
+    - abhi8080.docker_elasticsearch
+    - abhi8080.docker_kibana
+
+  pre_tasks:
     - name: Install packages required by ansible modules
       package:
         name: "{{ package }}"
@@ -11,9 +17,83 @@
         loop_var: package
       vars:
         packages:
-          - curl
-          
-    - name: Create docker network
-      docker_network:
-         name: "elastic"
-         state: present
+          - sudo
+
+    - name: Ensure /etc/easyrsa/pki directory exists
+      file:
+        path: /etc/easyrsa/pki
+        state: directory
+  vars:
+    # EasyRSA role vars
+    easyrsa_servers:
+      - name: elastic
+        pass: 'nk}$Q%];a3Gy$E!QvT8E'
+    easyrsa_clients:
+      - name: logstash
+        pass: 'nk}$Q%];a3Gy$E!QvT8E'
+      - name: kibana-backend
+        pass: 'nk}$Q%];a3Gy$E!QvT8E'
+      - name: beats
+        pass: 'nk}$Q%];a3Gy$E!QvT8E'
+    easyrsa_to_pkcs12: "{{ easyrsa_clients + easyrsa_servers }}"
+    easyrsa_to_pkcs8: "{{ easyrsa_clients + easyrsa_servers }}"
+    easyrsa_to_pkcs1: "{{ easyrsa_clients + easyrsa_servers }}"
+    easyrsa_download: []
+    easyrsa_download_pki: true
+    easyrsa_download_dir: '~'
+    ansible_user_id: "{{ lookup('pipe', 'id -un') }}"
+
+    # Elasticsearch role vars
+    elastic_certificates_dir: /usr/share/elasticsearch/config/certs/
+    elastic_certificates:
+      ca: "~/pki/ca.crt"
+      crt: "~/pki/issued/elastic.crt"
+      key: "~/pki/private/elastic.key"
+    elastic_jvm_extra_config: -Des.enforce.bootstrap.checks=true
+    elastic_certificates_password: 'nk}$Q%];a3Gy$E!QvT8E'
+
+
+    template_files:
+      # When using logstash in front of kibana and you use elastic beats to send
+      # data to logstash (which will then be forwarded to elastic), you will
+      # need to manually load the index templates that come with the elastic
+      # beats. The `nkakouros.beats` role allow you to extract the index
+      # template into a json file. Here, we read the paths on the ansible
+      # controller where these json files are located in order for the
+      # `nkakouros.elastic` role to insert them into elasticsearch.
+      "{{ q('fileglob', '~/elk/beats/*.json') }}"
+    elastic_index_templates: >-
+      [
+        {%- for file in template_files -%}
+          {
+            'file': '{{ file }}',
+            'name': '{{
+                file
+                | basename
+                | regex_replace('^([^.]+\.[0-9]+\.[0-9]+\.[0-9]+)\..*$', '\1')
+                | replace('.', '-', count=1)
+              }}'
+          },
+        {%- endfor -%}
+      ]
+
+
+
+    kibana_elastic_certificates:
+      ca: "~/pki/ca.crt"
+      crt: "~/pki/issued/kibana-backend.crt"
+      key: "~/pki/private/kibana-backend.key"
+
+    kibana_elasticsearch_user: >-
+          {{
+            (
+              lookup('file', elastic_builtin_users_password_backup_file)
+              | from_yaml
+              | selectattr('name', 'equalto', 'kibana')
+              | list
+            )[0]
+          }}
+
+
+    kibana_elastic_certificates_passphrase:
+          "{{ elastic_certificates_password }}"

@@ -1,3 +1,6 @@
 ---
 
 - src: geerlingguy.docker
+- src: nkakouros.easyrsa
+- src: abhi8080.docker_elasticsearch
+- src: abhi8080.docker_kibana
